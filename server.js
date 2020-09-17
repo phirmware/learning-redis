@@ -7,16 +7,19 @@ const middleware = require('./middleware')
 
 module.exports = (port, cb) => app.listen(port, cb)
 
-app.get('/',
+app.get('/healthz',
     api.checkServer
 )
 
 app.get('/github/profile/:username',
-    middleware.getDataFromRedis,
+    middleware.getUserData,
     api.getUserData
 )
 
 app.get('/github/profile/:username/:key',
-    middleware.getDataFromRedis,
+    middleware.getKeyValue,
     api.getUserInfo
 )
+
+app.use(middleware.notFound)
+app.use(middleware.handleError)

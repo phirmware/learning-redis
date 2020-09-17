@@ -1,8 +1,4 @@
-const fetch = require('node-fetch');
-const github_api = `https://api.github.com/users/`
-
-const redisClient = require('./redis')
-const mock_data = require('./github.mock.data.json')
+const userService = require('./user.service')
 
 module.exports = {
     checkServer,
@@ -15,22 +11,15 @@ function checkServer(req, res, next) {
 }
 
 async function getUserData(req, res, next) {
-    try {
-        res.json(mock_data)
-    } catch (error) {
-        res.status(500).json(error)
-    }
+    const { params: { username } } = req
+    const { error, user } = await userService.getUserData(username)
+    if (error) return res.status(400).json({ message: error })
+    res.json(user)
 }
 
 async function getUserInfo(req, res, next) {
-    try {
-        const { params: { username, key } } = req
-        const value = mock_data[key]
-        if (!value) return res.status(403).json({ message: 'Keep watching' })
-        await redisClient.setRedisData({username, key}, value)
-
-        res.json({ key: value })
-    } catch (error) {
-        res.status(500).json({ message: 'Error' })
-    }
+    const { params: { username, key } } = req
+    const { error, data } = await userService.getUserInfo({ username, key })
+    if (error) return res.status(400).json({ message: error })
+    res.json({ key: data })
 }
